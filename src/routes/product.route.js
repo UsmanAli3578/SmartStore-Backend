@@ -15,4 +15,26 @@ router.post(
 );
 
 router.get('/allproducts', productController.getProducts);
+router.get(
+	'/myproducts',
+	authMiddleware,
+	sellerMiddleware,
+	productController.getProductsBySellerId,
+);
+
+router.put(
+	'/editproduct/:id',
+	authMiddleware,
+	sellerMiddleware,
+	upload.single('image'),
+	productController.editProduct,
+);
+
+router.delete(
+	'/deleteproduct/:id',
+	authMiddleware,
+	sellerMiddleware,
+	productController.deleteProduct,
+);
+
 module.exports = router;
