@@ -19,7 +19,13 @@ async function userRegister(req, res) {
 		process.env.JWT_SECRET,
 	);
 
-	res.cookie('token', token);
+	// res.cookie('token', token);
+
+	res.cookie('token', token, {
+		httpOnly: true,
+		secure: true,
+		sameSite: 'none',
+	});
 
 	const { password: _, ...userWithoutPassword } = user;
 
@@ -51,7 +57,12 @@ async function userLogin(req, res) {
 		process.env.JWT_SECRET,
 	);
 
-	res.cookie('token', token);
+	// res.cookie('token', token);
+	res.cookie('token', token, {
+		httpOnly: true,
+		secure: true,
+		sameSite: 'none',
+	});
 
 	const { password: _, ...userWithoutPassword } = user;
 
