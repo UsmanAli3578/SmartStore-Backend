@@ -77,4 +77,17 @@ function getCurrentUser(req, res) {
 		user: req.user,
 	});
 }
-module.exports = { userRegister, userLogin, getCurrentUser };
+
+function userLogout(req, res) {
+	res.clearCookie('token', {
+		httpOnly: true,
+		secure: true,
+		sameSite: 'none',
+	});
+
+	return res.status(200).json({
+		message: 'User logged out successfully',
+	});
+}
+
+module.exports = { userRegister, userLogin, getCurrentUser, userLogout };
