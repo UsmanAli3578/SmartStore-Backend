@@ -72,4 +72,9 @@ async function userLogin(req, res) {
 	});
 }
 
-module.exports = { userRegister, userLogin };
+function getCurrentUser(req, res) {
+	return res.json({
+		user: req.user,
+	});
+}
+module.exports = { userRegister, userLogin, getCurrentUser };
