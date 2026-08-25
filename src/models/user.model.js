@@ -46,6 +46,18 @@ const getUserByEmail = async (email) => {
 	return result.rows[0];
 };
 
+const updateUserAvatar = async (userId, avatar) => {
+	const result = await pool.query(
+		`UPDATE users
+		 SET avatar = $1
+		 WHERE id = $2
+		 RETURNING id, name, email, role, avatar, created_at`,
+		[avatar, userId],
+	);
+
+	return result.rows[0];
+};
+
 module.exports = {
 	createUser,
 	getAllUsers,
@@ -53,4 +65,5 @@ module.exports = {
 	updateUser,
 	deleteUser,
 	getUserByEmail,
+	updateUserAvatar,
 };
