@@ -9,7 +9,16 @@ const createProduct = async (name, description, price, seller_id, image) => {
 };
 
 const getProducts = async () => {
-	const result = await pool.query(`SELECT * FROM products`);
+	const result = await pool.query(`
+		SELECT
+			products.*,
+			users.name AS seller_name,
+			users.avatar AS seller_avatar
+		FROM products
+		JOIN users
+			ON products.seller_id = users.id
+	`);
+
 	return result.rows;
 };
 const getProductById = async (id) => {

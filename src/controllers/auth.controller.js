@@ -1,6 +1,7 @@
 const userModel = require('../models/user.model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const imagekit = require('../config/imagekit');
 // async function userRegister(req, res) {
 // 	const { name, email, password, role } = req.body;
 
@@ -64,7 +65,13 @@ async function userRegister(req, res) {
 		console.log('USER CREATED:', user);
 
 		const token = jwt.sign(
-			{ id: user.id, email: user.email, role: user.role },
+			{
+				id: user.id,
+				email: user.email,
+				role: user.role,
+				created_at: user.created_at,
+				name: user.name,
+			},
 			process.env.JWT_SECRET,
 		);
 
@@ -108,7 +115,13 @@ async function userLogin(req, res) {
 	}
 
 	const token = jwt.sign(
-		{ id: user.id, email: user.email, role: user.role },
+		{
+			id: user.id,
+			email: user.email,
+			role: user.role,
+			name: user.name,
+			created_at: user.created_at,
+		},
 		process.env.JWT_SECRET,
 	);
 
@@ -127,10 +140,28 @@ async function userLogin(req, res) {
 	});
 }
 
-function getCurrentUser(req, res) {
-	return res.json({
-		user: req.user,
-	});
+async function getCurrentUser(req, res) {
+	try {
+		const user = await userModel.getUserById(req.user.id);
+
+		if (!user) {
+			return res.status(404).json({
+				message: 'User not found',
+			});
+		}
+
+		const { password: _, ...userWithoutPassword } = user;
+
+		return res.json({
+			user: userWithoutPassword,
+		});
+	} catch (error) {
+		console.error('GET CURRENT USER ERROR:', error);
+
+		return res.status(500).json({
+			message: 'Something went wrong',
+		});
+	}
 }
 
 function userLogout(req, res) {
@@ -144,5 +175,40 @@ function userLogout(req, res) {
 		message: 'User logged out successfully',
 	});
 }
+async function updateAvatar(req, res) {
+	try {
+		if (!req.file) {
+			return res.status(400).json({
+				message: 'Please select an image',
+			});
+		}
 
-module.exports = { userRegister, userLogin, getCurrentUser, userLogout };
+		const uploadedImage = await imagekit.files.upload({
+			file: req.file.buffer.toString('base64'),
+			fileName: req.file.originalname,
+			folder: '/avatars',
+		});
+
+		const avatar = uploadedImage.url;
+
+		const user = await userModel.updateUserAvatar(req.user.id, avatar);
+
+		return res.status(200).json({
+			message: 'Avatar updated successfully',
+			user,
+		});
+	} catch (error) {
+		console.error('UPDATE AVATAR ERROR:', error);
+
+		return res.status(500).json({
+			message: 'Something went wrong',
+		});
+	}
+}
+module.exports = {
+	userRegister,
+	userLogin,
+	getCurrentUser,
+	userLogout,
+	updateAvatar,
+};
