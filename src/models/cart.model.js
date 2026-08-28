@@ -63,9 +63,18 @@ async function updateQuantity(user_id, product_id, quantity) {
 	return result.rows[0];
 }
 
+async function clearCart(user_id) {
+	await pool.query(
+		`DELETE FROM cart_items
+		 WHERE user_id = $1`,
+		[user_id],
+	);
+}
+
 module.exports = {
 	addToCart,
 	getCartByUser,
 	removeFromCart,
 	updateQuantity,
+	clearCart,
 };
