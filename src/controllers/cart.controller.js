@@ -3,8 +3,9 @@ const cartModel = require('../models/cart.model');
 async function addToCart(req, res) {
 	const user_id = req.user.id;
 	const { product_id } = req.body;
+	const { quantity } = req.body;
 
-	const cartItem = await cartModel.addToCart(user_id, product_id);
+	const cartItem = await cartModel.addToCart(user_id, product_id, quantity);
 
 	return res.status(201).json({
 		message: 'Product added to cart successfully',

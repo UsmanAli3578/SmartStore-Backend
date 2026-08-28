@@ -102,10 +102,20 @@ async function deleteProduct(req, res) {
 	});
 }
 
+async function getProductById(req, res) {
+	const id = req.params.id;
+	const product = await productModel.getProductById(id);
+
+	res.status(201).json({
+		product,
+	});
+}
+
 module.exports = {
 	createProduct,
 	getProducts,
 	getProductsBySellerId,
 	editProduct,
 	deleteProduct,
+	getProductById,
 };
