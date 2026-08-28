@@ -36,5 +36,5 @@ router.delete(
 	sellerMiddleware,
 	productController.deleteProduct,
 );
-
+router.get('/productdetail/:id', productController.getProductById);
 module.exports = router;
