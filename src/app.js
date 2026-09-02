@@ -4,12 +4,12 @@ const userRouter = require('./routes/users.route');
 const productRouter = require('./routes/product.route');
 const cartRoutes = require('./routes/cart.route');
 const orderRoutes = require('./routes/order.route');
+const stripeRouter = require('./routes/stripe.route');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
 const app = express();
 app.use(cookieParser());
-
 
 app.use(
 	cors({
@@ -21,7 +21,7 @@ app.use(
 		credentials: true,
 	}),
 );
-
+app.use('/api/stripe', stripeRouter);
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 

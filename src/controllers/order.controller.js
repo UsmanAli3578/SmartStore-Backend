@@ -9,6 +9,82 @@ const {
 } = require('../models/order.model');
 
 const { clearCart } = require('../models/cart.model');
+const stripe = require('../config/stripe');
+
+// const createPaymentIntent = async (req, res) => {
+// 	try {
+// 		const paymentIntent = await stripe.paymentIntents.create({
+// 			amount: 2000,
+// 			currency: 'usd',
+// 		});
+
+// 		return res.status(200).json({
+// 			clientSecret: paymentIntent.client_secret,
+// 		});
+// 	} catch (error) {
+// 		console.error('Stripe PaymentIntent error:', error);
+
+// 		return res.status(500).json({
+// 			message: 'Unable to create payment',
+// 		});
+// 	}
+// };
+
+const createPaymentIntent = async (req, res) => {
+	try {
+		const userId = req.user.id;
+
+		// User ka cart nikalo
+		const cartItems = await getCartItemsForOrder(userId);
+
+		// Cart empty hai to payment create na karo
+		if (cartItems.length === 0) {
+			return res.status(400).json({
+				message: 'Your cart is empty',
+			});
+		}
+
+		// Check karo seller apna product purchase to nahi kar raha
+		const ownProduct = cartItems.find(
+			(item) => Number(item.seller_id) === Number(userId),
+		);
+
+		if (ownProduct) {
+			return res.status(403).json({
+				message: 'You cannot purchase your own product',
+			});
+		}
+
+		// Cart ka total calculate karo
+		const totalPrice = cartItems.reduce(
+			(sum, item) => sum + Number(item.price) * item.quantity,
+			0,
+		);
+
+		// Dollar ko cents mein convert karo
+		const amount = Math.round(totalPrice * 100);
+
+		const paymentIntent = await stripe.paymentIntents.create({
+			amount,
+			currency: 'usd',
+
+			metadata: {
+				userId: String(userId),
+			},
+		});
+
+		return res.status(200).json({
+			clientSecret: paymentIntent.client_secret,
+		});
+	} catch (error) {
+		console.error('Stripe PaymentIntent error:', error);
+
+		return res.status(500).json({
+			message: 'Unable to create payment',
+		});
+	}
+};
+
 
 const checkout = async (req, res) => {
 	try {
@@ -121,4 +197,5 @@ module.exports = {
 	getSellerOrders,
 	approveOrder,
 	getMyOrders,
+	createPaymentIntent,
 };

@@ -1,11 +1,22 @@
 const pool = require('../config/db');
 
-const createOrder = async (userId, totalPrice) => {
+const createOrder = async (userId, totalPrice, paymentIntentId) => {
 	const result = await pool.query(
-		`INSERT INTO orders (user_id, total_price)
-		 VALUES ($1, $2)
+		`INSERT INTO orders (user_id, total_price, payment_intent_id)
+		 VALUES ($1, $2, $3)
 		 RETURNING *;`,
-		[userId, totalPrice],
+		[userId, totalPrice, paymentIntentId],
+	);
+
+	return result.rows[0];
+};
+
+const getOrderByPaymentIntentId = async (paymentIntentId) => {
+	const result = await pool.query(
+		`SELECT * FROM orders
+		 WHERE payment_intent_id = $1
+		 LIMIT 1;`,
+		[paymentIntentId],
 	);
 
 	return result.rows[0];
@@ -136,4 +147,5 @@ module.exports = {
 	approveOrderItem,
 	getOrdersByUser,
 	updateOrderStatus,
+	getOrderByPaymentIntentId,
 };

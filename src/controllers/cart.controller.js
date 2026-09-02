@@ -2,10 +2,21 @@ const cartModel = require('../models/cart.model');
 
 async function addToCart(req, res) {
 	const user_id = req.user.id;
-	const { product_id } = req.body;
-	const { quantity } = req.body;
+	const { product_id, quantity } = req.body;
 
 	const cartItem = await cartModel.addToCart(user_id, product_id, quantity);
+
+	if (cartItem.error === 'PRODUCT_NOT_FOUND') {
+		return res.status(404).json({
+			message: 'Product not found',
+		});
+	}
+
+	if (cartItem.error === 'OWN_PRODUCT') {
+		return res.status(403).json({
+			message: 'You cannot add your own product to cart',
+		});
+	}
 
 	return res.status(201).json({
 		message: 'Product added to cart successfully',
