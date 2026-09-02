@@ -14,13 +14,35 @@ const pool = require('../config/db');
 // }
 
 async function addToCart(user_id, product_id, quantity) {
+	// Check whether the logged-in user owns this product
+	const productResult = await pool.query(
+		`SELECT seller_id
+		 FROM products
+		 WHERE id = $1`,
+		[product_id],
+	);
+
+	if (productResult.rows.length === 0) {
+		return {
+			error: 'PRODUCT_NOT_FOUND',
+		};
+	}
+
+	const seller_id = productResult.rows[0].seller_id;
+
+	// Seller cannot add their own product to cart
+	if (seller_id === user_id) {
+		return {
+			error: 'OWN_PRODUCT',
+		};
+	}
+
 	const result = await pool.query(
 		`INSERT INTO cart_items (user_id, product_id, quantity)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (user_id, product_id)
-        DO UPDATE SET quantity = cart_items.quantity + EXCLUDED.quantity
-		
-         RETURNING *`,
+		 VALUES ($1, $2, $3)
+		 ON CONFLICT (user_id, product_id)
+		 DO UPDATE SET quantity = cart_items.quantity + EXCLUDED.quantity
+		 RETURNING *`,
 		[user_id, product_id, quantity],
 	);
 
@@ -73,7 +95,7 @@ async function clearCart(user_id) {
 
 module.exports = {
 	addToCart,
-	getCartByUser,
+	getCartByUser, 
 	removeFromCart,
 	updateQuantity,
 	clearCart,
